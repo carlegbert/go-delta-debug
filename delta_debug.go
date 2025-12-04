@@ -3,38 +3,32 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"math"
-	"os"
 )
 
 type TestFunc func([]string) bool
 
 type DeltaDebugger struct {
-	test             TestFunc
-	initialInputFile string
-	outputFile       string
+	test         TestFunc
+	inputReader  io.Reader
+	outputWriter io.Writer
 }
 
 func Run(
 	test TestFunc,
-	initialInputFile string,
-	outputFile string,
+	inputReader io.Reader,
+	outputWriter io.Writer,
 ) error {
 	dd := &DeltaDebugger{
-		test:             test,
-		initialInputFile: initialInputFile,
-		outputFile:       outputFile,
+		test:         test,
+		inputReader:  inputReader,
+		outputWriter: outputWriter,
 	}
 
-	file, err := os.Open(dd.initialInputFile)
-	if err != nil {
-		return fmt.Errorf("error opening initial input file: %w", err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(dd.inputReader)
 	lines := []string{}
-	lines, err = collectLines(scanner, lines)
+	lines, err := collectLines(scanner, lines)
 	if err != nil {
 		return err
 	}
@@ -78,19 +72,17 @@ func collectLines(scanner *bufio.Scanner, lines []string) ([]string, error) {
 		lines = append(lines, scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading initial input file: %w", err)
+		return nil, fmt.Errorf("error reading input: %w", err)
 	}
 	return lines, nil
 }
 
 func writeFailedTestCase(dd *DeltaDebugger, testCase []string) error {
-	outputFile, err := os.Create(dd.outputFile)
-	if err != nil {
-		return fmt.Errorf("error creating output file: %w", err)
-	}
-	defer outputFile.Close()
 	for _, line := range testCase {
-		outputFile.WriteString(line + "\n")
+		_, err := fmt.Fprintln(dd.outputWriter, line)
+		if err != nil {
+			return fmt.Errorf("error writing output: %w", err)
+		}
 	}
 	return nil
 }
