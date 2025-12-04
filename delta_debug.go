@@ -40,11 +40,6 @@ func Run(
 		if failed {
 			n = 2
 			lines = testCase
-			err = writeFailedTestCase(dd, testCase)
-			if err != nil {
-				return err
-			}
-
 			continue
 		}
 
@@ -53,15 +48,15 @@ func Run(
 		if failed {
 			n -= 1
 			lines = testCase
-			err = writeFailedTestCase(dd, testCase)
-			if err != nil {
-				return err
-			}
-
 			continue
 		}
 
 		n *= 2
+	}
+
+	err = writeFailedTestCase(dd, lines)
+	if err != nil {
+		return err
 	}
 
 	return nil
