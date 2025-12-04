@@ -1,19 +1,17 @@
-package main
+package deltadebug_test
 
 import (
 	"bytes"
 	"strings"
 	"testing"
+
+	deltadebug "github.com/carlegbert/go-delta-debug"
+	"slices"
 )
 
 func TestRun(t *testing.T) {
 	testFunc := func(lines []string) bool {
-		for _, line := range lines {
-			if line == "FAIL" {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(lines, "FAIL")
 	}
 
 	input := strings.NewReader(strings.Join([]string{
@@ -24,7 +22,7 @@ func TestRun(t *testing.T) {
 
 	var output bytes.Buffer
 
-	err := Run(testFunc, input, &output)
+	err := deltadebug.Run(testFunc, input, &output)
 	if err != nil {
 		t.Fatalf("Run returned error: %v", err)
 	}
