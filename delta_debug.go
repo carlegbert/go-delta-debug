@@ -27,8 +27,7 @@ func Run(
 	}
 
 	scanner := bufio.NewScanner(dd.inputReader)
-	lines := []string{}
-	lines, err := collectLines(scanner, lines)
+	lines, err := collectLines(scanner)
 	if err != nil {
 		return err
 	}
@@ -62,7 +61,8 @@ func Run(
 	return nil
 }
 
-func collectLines(scanner *bufio.Scanner, lines []string) ([]string, error) {
+func collectLines(scanner *bufio.Scanner) ([]string, error) {
+	lines := []string{}
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
@@ -103,7 +103,9 @@ func getNablas(lines []string, n int) chan []string {
 		defer close(nablas)
 		for start := 0; start < len(lines); start += chunkSize {
 			end := int(math.Min(float64(start)+float64(chunkSize), float64(len(lines))))
-			nablas <- append(lines[:start], lines[end:]...)
+			nabla := append([]string{}, lines[:start]...)
+			nabla = append(nabla, lines[end:]...)
+			nablas <- nabla
 		}
 	}()
 
